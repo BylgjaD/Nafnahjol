@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Snúningshjól</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
 
 <style>
 body { 
@@ -80,6 +82,7 @@ body {
 <canvas id="wheel" width="360" height="360"></canvas>
 <button onclick="spin()" id="btn">SPIN</button>
 <div id="bigName"></div>
+<audio id="clapSound" src="https://www.soundjay.com/human/applause-8.mp3"></audio>
 
 <script>
 let segments = [
@@ -197,6 +200,12 @@ function spin(){
   setTimeout(()=>{
 
     bigName.innerText = target;
+    confetti({
+  particleCount: 150,
+  spread: 100,
+  origin: { y: 0.6 }
+});
+    document.getElementById("clapSound").play();
 
     bigName.style.animation = "none";
     bigName.offsetHeight;
