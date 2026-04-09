@@ -205,7 +205,9 @@ function spin(){
   spread: 100,
   origin: { y: 0.6 }
 });
-    document.getElementById("clapSound").play();
+    let sound = document.getElementById("clapSound");
+sound.currentTime = 0;
+sound.play();
 
     bigName.style.animation = "none";
     bigName.offsetHeight;
