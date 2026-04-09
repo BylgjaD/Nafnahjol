@@ -150,8 +150,13 @@ document.getElementById("wheel").style.transform =
   "rotate(" + currentRotation + "deg)";
 
 function spin(){
+
   if(spinning) return;
-  if(segments.length === 0) return;
+
+  if(segments.length === 0){
+    alert("Allir búnir!");
+    return;
+  }
 
   spinning = true;
   document.getElementById("btn").disabled = true;
@@ -201,6 +206,7 @@ function spin(){
     setTimeout(()=>{
       segments = segments.filter(s => s.name !== target);
       drawWheel();
+      forcedOrder = forcedOrder.filter(name => name !== target);
 
       let randomStart = Math.random() * 360;
 
