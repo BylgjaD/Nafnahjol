@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+<meta charset="UTF-8">
+<title>Snúningshjól</title>
+
+<style>
+body { 
+  text-align:center; 
+  font-family:Arial;
+  background:#f5f7fa;
+}
+
+/* Pointer */
+#pointer{
+  width:0;
+  height:0;
+  border-left:14px solid transparent;
+  border-right:14px solid transparent;
+  border-bottom:25px solid black;
+  margin:20px auto -15px auto;
+}
+
+/* Wheel */
+#wheel{
+  border-radius:50%;
+  border:10px solid #222;
+  margin:20px auto;
+  display:block;
+  transition: transform 4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  background:white;
+}
+
+/* Button */
+#btn{
+  padding:12px 25px;
+  font-size:18px;
+  border:none;
+  border-radius:8px;
+  background:#333;
+  color:white;
+  cursor:pointer;
+}
+
+#btn:hover{
+  background:#555;
+}
+
+/* Big name popup */
+#bigName{
+  position:fixed;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%) scale(0);
+  font-size:70px;
+  font-weight:bold;
+  opacity:0;
+  text-shadow:0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Animations */
+@keyframes pop{
+  0% { transform:translate(-50%,-50%) scale(0); opacity:0; }
+  100% { transform:translate(-50%,-50%) scale(1.3); opacity:1; }
+}
+
+@keyframes drop{
+  0% { transform:translate(-50%,-50%); opacity:1; }
+  100% { transform:translate(-50%,150%); opacity:0; }
+}
+</style>
+</head>
+
+<body>
+
+<div id="pointer"></div>
+<canvas id="wheel" width="360" height="360"></canvas>
+<button onclick="spin()" id="btn">SPIN</button>
+<div id="bigName"></div>
+
+<script>
+let segments = [
+  {name:"Aron", color:"#e74c3c"},
+  {name:"Linda", color:"#3498db"},
+  {name:"Maríon", color:"#2ecc71"},
+  {name:"Kristel", color:"#f1c40f"},
+  {name:"Sigrún", color:"#9b59b6"},
+  {name:"Davíð", color:"#e67e22"},
+  {name:"Bjartur", color:"#1abc9c"},
+  {name:"Alfreð", color:"#34495e"},
+  {name:"Hólmgeir", color:"#ff6b6b"},
+  {name:"Galdur", color:"#6c5ce7"},
+  {name:"Jón Dagur", color:"#00cec9"},
+  {name:"Emelía", color:"#fdcb6e"},
+  {name:"Rut", color:"#d63031"},
+  {name:"Friðrik", color:"#0984e3"},
+  {name:"Ronja", color:"#00b894"},
+  {name:"Heiðrún", color:"#fd79a8"},
+  {name:"Grétar", color:"#636e72"},
+  {name:"Eldey", color:"#fab1a0"},
+  {name:"Lóa", color:"#81ecec"}
+];
+
+let forcedOrder = [
+"Linda","Aron","Maríon","Kristel","Sigrún","Davíð",
+"Bjartur","Alfreð","Hólmgeir","Galdur",
+"Jón Dagur","Emelía","Rut","Friðrik","Ronja",
+"Heiðrún","Grétar","Eldey","Lóa"
+];
+
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+const center = 180;
+const radius = 170;
+
+function drawWheel(){
+  ctx.clearRect(0,0,360,360);
+
+  let slice = (2*Math.PI)/segments.length;
+  let angle = 0;
+
+  segments.forEach((seg)=>{
+    ctx.beginPath();
+    ctx.moveTo(center, center);
+    ctx.arc(center, center, radius, angle, angle + slice);
+    ctx.fillStyle = seg.color;
+    ctx.fill();
+
+    ctx.save();
+    ctx.translate(center, center);
+    ctx.rotate(angle + slice/2);
+    ctx.fillStyle = "white";
+    ctx.font = "12px Arial";
+    ctx.fillText(seg.name, 90, 0);
+    ctx.restore();
+
+    angle += slice;
+  });
+}
+
+drawWheel();
+
+let spinIndex = 0;
+let spinning = false;
+let currentRotation = 0;
+
+// random start
+currentRotation = Math.random() * 360;
+document.getElementById("wheel").style.transform =
+  "rotate(" + currentRotation + "deg)";
+
+function spin(){
+  if(spinning) return;
+  if(segments.length === 0) return;
+
+  spinning = true;
+  document.getElementById("btn").disabled = true;
+
+  let wheel = document.getElementById("wheel");
+  let bigName = document.getElementById("bigName");
+
+  let target = forcedOrder[spinIndex % forcedOrder.length];
+  let index = segments.findIndex(s => s.name === target);
+
+  if(index === -1){
+    spinIndex++;
+    spinning = false;
+    document.getElementById("btn").disabled = false;
+    return spin();
+  }
+
+  let sliceAngle = 360 / segments.length;
+
+  let targetAngle = (index * sliceAngle) + (sliceAngle / 2);
+  let finalAngle = 360 - targetAngle + 270;
+
+  let currentMod = currentRotation % 360;
+  let randomOffset = (Math.random() - 0.5) * (sliceAngle * 0.6);
+
+  let spinAmount =
+    (360 * 5) +
+    (finalAngle - currentMod) +
+    randomOffset;
+
+  currentRotation += spinAmount;
+
+  wheel.style.transform = "rotate(" + currentRotation + "deg)";
+
+  setTimeout(()=>{
+
+    bigName.innerText = target;
+
+    bigName.style.animation = "none";
+    bigName.offsetHeight;
+    bigName.style.animation = "pop 0.5s forwards";
+
+    setTimeout(()=>{
+      bigName.style.animation = "drop 0.8s forwards";
+    },800);
+
+    setTimeout(()=>{
+      segments = segments.filter(s => s.name !== target);
+      drawWheel();
+
+      let randomStart = Math.random() * 360;
+
+      wheel.style.transition = "none";
+      currentRotation = randomStart;
+      wheel.style.transform = "rotate(" + currentRotation + "deg)";
+
+      wheel.offsetHeight;
+      wheel.style.transition = "transform 4s cubic-bezier(0.2, 0.8, 0.2, 1)";
+
+      spinning = false;
+      document.getElementById("btn").disabled = false;
+
+    },1200);
+
+  },4000);
+
+  spinIndex++;
+}
+</script>
+
+</body>
+</html>
