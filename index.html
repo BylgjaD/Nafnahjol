@@ -206,7 +206,7 @@ function spin(){
     setTimeout(()=>{
       segments = segments.filter(s => s.name !== target);
       drawWheel();
-      forcedOrder = forcedOrder.filter(name => name !== target);
+      
 
       let randomStart = Math.random() * 360;
 
